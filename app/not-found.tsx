@@ -1,0 +1,1 @@
+export default function NotFound(){return <main style={{maxWidth:680,margin:'80px auto',padding:24,fontFamily:'system-ui'}}><h1>Page not found</h1><p><a href="/">Return to the QR Code Creator</a></p></main>}
