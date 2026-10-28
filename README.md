@@ -173,3 +173,17 @@ GitHub: https://github.com/huachenlihx
 ---
 
 *This README documents the frontend implementation in this repository; server-side details are described only to clarify the frontend's API integration.*
+
+## Automated unit tests
+
+This repository includes dependency-free unit tests using the **Node.js built-in test runner** (Node.js **22+** required to run TypeScript files using `--experimental-strip-types`). No Jest installation is required.
+
+```bash
+npm test
+```
+
+The tests in `tests/download.test.mjs` cover HTTP response and ZIP-signature validation, JSON/HTML error responses, truncated downloads, `Content-Disposition` filename parsing (including UTF-8), and browser Blob download cleanup.
+
+The frontend validates the HTTP status, response content type, and ZIP signature before starting a ZIP download. These tests help prevent a regression where an error response could be saved as a corrupted ZIP file.
+
+> These are targeted unit tests for ZIP-download utilities, not comprehensive React component or end-to-end browser tests. Run `npm run build` separately before deployment.

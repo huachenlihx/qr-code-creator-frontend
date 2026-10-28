@@ -7,7 +7,9 @@
     "build": "next build --webpack",
     "start": "npx serve@latest out",
     "lint": "eslint",
-    "postbuild": "sh scripts/postbuild.sh"
+    "postbuild": "sh scripts/postbuild.sh",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.ts",
+    "test:watch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --watch tests/*.test.ts"
   },
   "dependencies": {
     "axios": "^1.16.0",
