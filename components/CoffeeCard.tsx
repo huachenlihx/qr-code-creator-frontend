@@ -79,6 +79,7 @@ export default function CoffeeCard() {
         {presets.map((value) => <button
           key={value}
           type="button"
+          aria-pressed={amount === value}
           className={amount === value ? 'preset active' : 'preset'}
           onClick={() => setAmount(value)}
         >{config.currency} ${Number(value).toFixed(0)}</button>)}
@@ -96,7 +97,7 @@ export default function CoffeeCard() {
       <button type="button" className="coffeeButton" onClick={() => void submit()} disabled={busy}>
         <Coffee size={18}/>{busy ? 'Opening Stripe…' : 'Buy me a coffee'}<ExternalLink size={15}/>
       </button>
-      {message && <p className="statusText">{message}</p>}
+      {message && <p className="statusText" role="alert">{message}</p>}
       <small>Minimum {config.currency} ${minimum.toFixed(2)}. Card details are handled by Stripe, not this website.</small>
     </div>
   </aside>;

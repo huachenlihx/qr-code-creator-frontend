@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CircleHelp, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -9,6 +9,8 @@ import remarkGfm from 'remark-gfm';
 export default function HelpModal() {
   const [open, setOpen] = useState(false);
   const [markdown, setMarkdown] = useState('');
+  const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open || markdown) return;
@@ -23,17 +25,29 @@ export default function HelpModal() {
     if (!open) return;
 
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); }
+      if (event.key === 'Tab') {
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+        if (!focusable?.length) { event.preventDefault(); dialogRef.current?.focus(); return; }
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     };
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = previousOverflow; triggerRef.current?.focus(); };
   }, [open]);
 
   return (
     <>
       <button
         type="button"
+        ref={triggerRef}
         className="secondaryButton"
         onClick={() => setOpen(true)}
       >
@@ -50,6 +64,8 @@ export default function HelpModal() {
             }}
           >
             <section
+              ref={dialogRef}
+              tabIndex={-1}
               className="modal"
               role="dialog"
               aria-modal="true"
@@ -61,6 +77,7 @@ export default function HelpModal() {
                   <h2 id="help-title">QR Code Creator Instructions</h2>
                 </div>
                 <button
+                  type="button"
                   className="iconButton"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
@@ -69,7 +86,7 @@ export default function HelpModal() {
                 </button>
               </header>
 
-              <div className="markdown">
+              <div className="markdown" aria-live="polite">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {markdown || 'Loading…'}
                 </ReactMarkdown>

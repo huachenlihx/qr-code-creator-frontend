@@ -237,6 +237,10 @@ The ZIP download tests verify that the frontend rejects non-ZIP responses, inclu
 
 **Passing tests are not the same as full application coverage.** The current suite does not claim comprehensive coverage of `QRCodeCreator.tsx`, `AntiBotVerification.tsx`, or real-browser end-to-end workflows.
 
+## Accessibility
+
+Accessibility improvements target WCAG 2.2 Level AA and include keyboard navigation, visible focus indicators, modal focus management, announcements of errors/status, and reduced-motion support. See [ACCESSIBILITY.md](ACCESSIBILITY.md) for implemented enhancements and manual verification steps. **This is not a certification of WCAG conformance.**
+
 ---
 
 *This README documents the frontend implementation in this repository; server-side details are described only to clarify the frontend's API integration.*

@@ -42,17 +42,28 @@ export default function ContactModal() {
   const [status, setStatus] = useState('');
   const antiRef = useRef<AntiBotHandle>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !busy) setOpen(false);
+      if (event.key === 'Escape' && !busy) { event.preventDefault(); setOpen(false); }
+      if (event.key === 'Tab') {
+        const controls = dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]), select:not([disabled]), a[href]');
+        if (!controls?.length) { event.preventDefault(); dialogRef.current?.focus(); return; }
+        const first = controls[0]; const last = controls[controls.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    dialogRef.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      triggerRef.current?.focus();
     };
   }, [open, busy]);
 
@@ -174,6 +185,7 @@ export default function ContactModal() {
   return <>
     <button
       type="button"
+      ref={triggerRef}
       className="footerContactLink"
       onClick={() => {
         setError('');
@@ -191,7 +203,7 @@ export default function ContactModal() {
           setOpen(false);
         }
       }}>
-        <section className="modal contactModal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+        <section ref={dialogRef} tabIndex={-1} className="modal contactModal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
           <header className="modalHeader contactModalHeader">
             <div>
               <span className="eyebrow">Website development</span>
@@ -246,7 +258,7 @@ export default function ContactModal() {
               <label className="attachmentDrop" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); applyFiles(Array.from(event.dataTransfer.files || [])); }}>
                 <Paperclip size={25}/>
                 <span>{files.length ? `${files.length} file${files.length === 1 ? '' : 's'} selected` : 'Click to browse or drop files here'}</span>
-                <input ref={fileRef} type="file" multiple accept={ACCEPTED_EXTENSIONS} onChange={onFilesChange}/>
+                <input ref={fileRef} type="file" aria-label="Attach files" multiple accept={ACCEPTED_EXTENSIONS} onChange={onFilesChange}/>
               </label>
               {files.length > 0 && <div className="selectedFiles">{files.map(file => <span key={`${file.name}-${file.size}`}>{file.name}</span>)}</div>}
             </div>
@@ -258,8 +270,8 @@ export default function ContactModal() {
               onReadyChange={setAntiReady}
             />
 
-            {error && <div className="alert error">{error}</div>}
-            {status && <div className="alert success">{status}</div>}
+            {error && <div className="alert error" role="alert">{error}</div>}
+            {status && <div className="alert success" role="status" aria-live="polite">{status}</div>}
 
             <div className="contactActions">
               <button

@@ -165,7 +165,7 @@ const AntiBotVerification = forwardRef<AntiBotHandle, AntiBotProps>(
         </div>
 
         {loading ? (
-          <p className="muted">Loading verification…</p>
+          <p className="muted" role="status">Loading verification…</p>
         ) : challenge ? (
           <>
             <div className="challengeRow">
@@ -185,13 +185,14 @@ const AntiBotVerification = forwardRef<AntiBotHandle, AntiBotProps>(
                 className="iconButton"
                 onClick={() => void loadChallenge()}
                 title="New question"
+                aria-label="Get a new verification question"
               >
                 <RefreshCw size={17} />
               </button>
             </div>
 
             {challenge.turnstile_required && (
-              <div ref={turnstileRef} className="turnstileBox" />
+              <div ref={turnstileRef} className="turnstileBox" aria-label="Cloudflare Turnstile verification" />
             )}
 
             <div className="honeypot" aria-hidden="true">
@@ -208,7 +209,7 @@ const AntiBotVerification = forwardRef<AntiBotHandle, AntiBotProps>(
           </>
         ) : null}
 
-        {error && <p className="fieldError">{error}</p>}
+        {error && <p className="fieldError" role="alert">{error}</p>}
       </div>
     );
   },
