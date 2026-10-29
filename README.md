@@ -41,6 +41,7 @@ The interface also provides:
 - **Backend integration:** Separate Django REST Framework API
 - **Optional verification:** Cloudflare Turnstile, coordinated with the backend
 - **Payments:** Stripe Checkout through backend endpoints
+- **Testing:** Vitest, React Testing Library, jsdom, and V8 code coverage
 
 ## Application architecture
 
@@ -134,6 +135,12 @@ components/
 lib/
   api.ts                    # Axios client and API base URL
   download.ts               # Browser ZIP download helpers
+tests/
+  download.test.ts          # ZIP and download utility tests (14)
+  components/
+    HelpModal.test.tsx      # Help modal tests (5)
+    ContactModal.test.tsx   # Contact form tests (9)
+vitest.config.mts           # Vitest configuration
 public/
   help/                     # QR Code Creator usage guide
   robots.txt
@@ -170,20 +177,66 @@ The associated backend implementation is separate from this public frontend repo
 **Hua Chen**  
 GitHub: https://github.com/huachenlihx
 
----
+## Automated testing
 
-*This README documents the frontend implementation in this repository; server-side details are described only to clarify the frontend's API integration.*
+The frontend uses **Vitest** for TypeScript unit tests and **React Testing Library** with **jsdom** for React component tests. Tests use mocks for API calls and human verification, so the test suite does not require access to the live Django backend or Cloudflare Turnstile.
 
-## Automated unit tests
+The latest verified local run completed **28 tests across 3 files, all passing**:
 
-This repository includes dependency-free unit tests using the **Node.js built-in test runner** (Node.js **22+** required to run TypeScript files using `--experimental-strip-types`). No Jest installation is required.
+| Test file | Tests | Areas covered |
+| --- | ---: | --- |
+| `tests/download.test.ts` | 14 | ZIP signatures, failed HTTP responses, JSON/HTML errors, filename parsing, and browser download cleanup |
+| `tests/components/HelpModal.test.tsx` | 5 | Opening/closing, Markdown loading and errors, Escape key, backdrop interaction |
+| `tests/components/ContactModal.test.tsx` | 9 | Required fields, category loading, contact submission, API errors, attachment limits, clearing and closing |
+| **Total** | **28** | **3 test files** |
+
+### Run tests
+
+Install dependencies first:
+
+```bash
+npm ci
+```
+
+Run all tests once:
 
 ```bash
 npm test
 ```
 
-The tests in `tests/download.test.mjs` cover HTTP response and ZIP-signature validation, JSON/HTML error responses, truncated downloads, `Content-Disposition` filename parsing (including UTF-8), and browser Blob download cleanup.
+Run tests in watch mode while developing:
 
-The frontend validates the HTTP status, response content type, and ZIP signature before starting a ZIP download. These tests help prevent a regression where an error response could be saved as a corrupted ZIP file.
+```bash
+npm run test:watch
+```
 
-> These are targeted unit tests for ZIP-download utilities, not comprehensive React component or end-to-end browser tests. Run `npm run build` separately before deployment.
+Generate a code coverage report:
+
+```bash
+npm run test:coverage
+```
+
+Vitest writes coverage reports to the generated `coverage/` directory. When an HTML report is available, view it on macOS with:
+
+```bash
+open coverage/index.html
+```
+
+The `coverage/` directory is generated output and should be excluded from Git through `.gitignore`.
+
+Before deployment, run both the tests and the production build:
+
+```bash
+npm test
+npm run build
+```
+
+### Testing scope and regression prevention
+
+The ZIP download tests verify that the frontend rejects non-ZIP responses, including JSON/HTML error payloads and invalid ZIP signatures, rather than downloading them as corrupted files. The modal tests cover user-facing interactions with mocked external dependencies.
+
+**Passing tests are not the same as full application coverage.** The current suite does not claim comprehensive coverage of `QRCodeCreator.tsx`, `AntiBotVerification.tsx`, or real-browser end-to-end workflows.
+
+---
+
+*This README documents the frontend implementation in this repository; server-side details are described only to clarify the frontend's API integration.*
