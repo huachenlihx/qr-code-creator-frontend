@@ -1,6 +1,6 @@
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
-import { filenameFromDisposition, validateZipResponse, downloadBlob } from '../lib/download.ts';
+import { filenameFromDisposition, validateZipResponse, downloadBlob } from '@/lib/download';
 
 const zip = (type='application/zip') => new Blob([Uint8Array.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0x00])], {type});
 
@@ -49,12 +49,30 @@ test('downloadBlob: creates a link, triggers download, and schedules cleanup', (
   const originalCreate = URL.createObjectURL;
   const originalRevoke = URL.revokeObjectURL;
   const originalTimeout = globalThis.setTimeout;
-  let clicked=false, removed=false, appended=false, revoked=false, delay;
-  const anchor={href:'',download:'',click(){clicked=true},remove(){removed=true}};
-  globalThis.document={createElement(tag){assert.equal(tag,'a');return anchor;},body:{appendChild(item){assert.equal(item,anchor);appended=true}}};
+  let clicked=false, removed=false, appended=false, revoked=false;
+  let delay: number | undefined;
+  const anchor = {href:'', download:'', click(){clicked=true}, remove(){removed=true}} as unknown as HTMLAnchorElement;
+  const mockDocument = {
+    createElement(tagName: string) {
+      assert.equal(tagName,'a');
+      return anchor;
+    },
+    body: {
+      appendChild<T extends Node>(item: T): T {
+        assert.equal(item, anchor);
+        appended=true;
+        return item;
+      }
+    }
+  } as unknown as Document;
+  globalThis.document=mockDocument;
   URL.createObjectURL=()=> 'blob:sample';
   URL.revokeObjectURL=(url)=>{assert.equal(url,'blob:sample');revoked=true};
-  globalThis.setTimeout=(callback, ms)=>{delay=ms;callback();return 1};
+  globalThis.setTimeout=((callback: (...args: unknown[]) => void, ms?: number): ReturnType<typeof setTimeout> => {
+    delay=ms;
+    callback();
+    return 1 as unknown as ReturnType<typeof setTimeout>;
+  }) as typeof setTimeout;
   try {
     downloadBlob(zip(),'download.zip');
     assert.equal(anchor.href,'blob:sample');
