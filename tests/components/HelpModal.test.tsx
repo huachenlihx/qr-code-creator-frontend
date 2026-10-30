@@ -52,6 +52,19 @@ describe('HelpModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('allows keyboard focus on the scrollable instructions region', async () => {
+    render(<HelpModal />);
+    fireEvent.click(screen.getByRole('button', { name: /instructions/i }));
+
+    const content = await screen.findByRole('region', {
+      name: 'QR Code Creator instructions content',
+    });
+
+    expect(content).toHaveAttribute('tabindex', '0');
+    content.focus();
+    expect(content).toHaveFocus();
+  });
+
   it('closes on backdrop click, not on an inside click', async () => {
     render(<HelpModal />);
     fireEvent.click(screen.getByRole('button', { name: /instructions/i }));

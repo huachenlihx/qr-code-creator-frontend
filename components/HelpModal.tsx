@@ -86,7 +86,13 @@ export default function HelpModal() {
                 </button>
               </header>
 
-              <div className="markdown" aria-live="polite">
+              <div
+                className="markdown"
+                tabIndex={0}
+                role="region"
+                aria-label="QR Code Creator instructions content"
+                aria-live="polite"
+              >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {markdown || 'Loading…'}
                 </ReactMarkdown>
